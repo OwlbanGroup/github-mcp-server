@@ -6,10 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/go-github/v74/github"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/require"
@@ -253,24 +255,52 @@ func (h *TestHelper) SkipIfToolNotAvailable(toolName string) {
 
 // TestConfiguration holds test configuration
 type TestConfiguration struct {
-	Toolsets       []string
-	Host           string
-	ReadOnly       bool
+	Toolsets        []string
+	Host            string
+	ReadOnly        bool
 	DynamicToolsets bool
 }
 
 // GetTestConfig returns the current test configuration
 func GetTestConfig() TestConfiguration {
 	config := TestConfiguration{
-		Toolsets:       strings.Split(os.Getenv("GITHUB_TOOLSETS"), ","),
-		Host:           getE2EHost(),
-		ReadOnly:       os.Getenv("GITHUB_READ_ONLY") == "1",
+		Toolsets:        strings.Split(os.Getenv("GITHUB_TOOLSETS"), ","),
+		Host:            getE2EHost(),
+		ReadOnly:        os.Getenv("GITHUB_READ_ONLY") == "1",
 		DynamicToolsets: os.Getenv("GITHUB_DYNAMIC_TOOLSETS") == "1",
 	}
 
 	if len(config.Toolsets) == 0 || (len(config.Toolsets) == 1 && config.Toolsets[0] == "") {
-		config.Toolsets = github.DefaultTools
+		config.Toolsets = github.GetDefaultToolsetIDs()
 	}
 
 	return config
+}
+
+// getE2EToken ensures the environment variable is checked only once and returns the token
+func getE2EToken(t *testing.T) string {
+	token := os.Getenv("GITHUB_MCP_SERVER_E2E_TOKEN")
+	if token == "" {
+		t.Fatalf("GITHUB_MCP_SERVER_E2E_TOKEN environment variable is not set")
+	}
+	return token
+}
+
+// getE2EHost ensures the environment variable is checked only once and returns the host
+func getE2EHost() string {
+	return os.Getenv("GITHUB_MCP_SERVER_E2E_HOST")
+}
+
+// getRESTClient creates a GitHub REST client for testing
+func getRESTClient(t *testing.T) *github.Client {
+	token := getE2EToken(t)
+	ghClient := github.NewClient(nil).WithAuthToken(token)
+
+	if host := getE2EHost(); host != "" && host != "https://github.com" {
+		var err error
+		ghClient, err = ghClient.WithEnterpriseURLs(host, host)
+		require.NoError(t, err, "expected to create GitHub client with host")
+	}
+
+	return ghClient
 }
