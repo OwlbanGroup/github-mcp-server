@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Constants for repeated literals
+const (
+	cleanupBranchName = "cleanup-branch"
+)
+
 // TestConcurrentOperationsLoad tests handling of multiple concurrent operations
 func TestConcurrentOperationsLoad(t *testing.T) {
 	t.Parallel()
@@ -191,12 +196,12 @@ func TestResourceCleanupVerification(t *testing.T) {
 	// Perform operations on each repository
 	for _, repoName := range repoNames {
 		// Create some content
-		helper.CreateTestBranch(repoName, "cleanup-branch")
-		helper.CreateTestFile(repoName, "cleanup-branch", "cleanup.txt", "Content to be cleaned up", "Add cleanup file")
+		helper.CreateTestBranch(repoName, cleanupBranchName)
+		helper.CreateTestFile(repoName, cleanupBranchName, "cleanup.txt", "Content to be cleaned up", "Add cleanup file")
 
 		// Create issue and PR
 		issueNum := helper.CreateTestIssue(repoName, "Cleanup test issue")
-		prNum := helper.CreateTestPR(repoName, "Cleanup test PR", "Test PR", "cleanup-branch", "main")
+		prNum := helper.CreateTestPR(repoName, "Cleanup test PR", "Test PR", cleanupBranchName, "main")
 
 		helper.LogTestStep("Created resources in %s: issue #%d, PR #%d", repoName, issueNum, prNum)
 	}

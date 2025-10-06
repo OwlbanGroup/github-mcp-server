@@ -1,0 +1,3 @@
+- [ ] Add handleMockWebhook function to reduce cognitive complexity
+- [ ] Modify /merchant-webhook route to use handleMockWebhook
+- [ ] Replace if (process.env.NODE_ENV !== 'production') with optional chaining

@@ -8,6 +8,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for repeated strings
+const (
+	checkMarkRepoCreated     = "✓ Repository created"
+	checkMarkBranchCreated   = "✓ Branch created"
+	checkMarkFileCreated     = "✓ File created and committed"
+	checkMarkPRCreated       = "✓ Pull request created"
+	checkMarkPRCommentAdded  = "✓ Pull request comment added"
+	checkMarkPRReviewCreated = "✓ Pull request review created"
+	checkMarkPRMerged        = "✓ Pull request merged"
+	checkMarkFileVerified    = "✓ File verified in main branch"
+	checkMarkIssueCreated    = "✓ Issue created"
+	checkMarkLabelsAdded     = "✓ Labels added to issue"
+	checkMarkIssueAssigned   = "✓ Issue assigned"
+	checkMarkCommentAdded    = "✓ Issue comment added"
+	checkMarkFixBranch       = "✓ Fix branch created"
+	checkMarkFixCommitted    = "✓ Fix committed"
+	checkMarkIssueClosed     = "✓ Issue closed"
+	checkMarkDiscussionAdded = "✓ Discussion comments added"
+	checkMarkFeatureBranch   = "✓ Feature implemented"
+	checkMarkFeatureMerged   = "✓ Feature merged and issue closed"
+
+	featureBranchName = "feature-branch"
+	fixBranchName     = "fix-crash"
+	featureRequestBranch = "feature-request"
+)
+
 // TestCompleteRepositoryLifecycle tests the complete repository lifecycle
 func TestCompleteRepositoryLifecycle(t *testing.T) {
 	t.Parallel()
@@ -19,19 +45,19 @@ func TestCompleteRepositoryLifecycle(t *testing.T) {
 
 	// Phase 1: Create repository
 	repoName := helper.CreateTestRepo("lifecycle-test")
-	helper.LogTestResult("✓ Repository created")
+	helper.LogTestResult(checkMarkRepoCreated)
 
 	// Phase 2: Create branch
-	helper.CreateTestBranch(repoName, "feature-branch")
-	helper.LogTestResult("✓ Branch created")
+	helper.CreateTestBranch(repoName, featureBranchName)
+	helper.LogTestResult(checkMarkBranchCreated)
 
 	// Phase 3: Create file and commit
-	helper.CreateTestFile(repoName, "feature-branch", "feature.go", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}", "Add main.go")
-	helper.LogTestResult("✓ File created and committed")
+	helper.CreateTestFile(repoName, featureBranchName, "feature.go", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}", "Add main.go")
+	helper.LogTestResult(checkMarkFileCreated)
 
 	// Phase 4: Create pull request
-	prNumber := helper.CreateTestPR(repoName, "Add Hello World feature", "This PR adds a simple Hello World program", "feature-branch", "main")
-	helper.LogTestResult("✓ Pull request created")
+	prNumber := helper.CreateTestPR(repoName, "Add Hello World feature", "This PR adds a simple Hello World program", featureBranchName, "main")
+	helper.LogTestResult(checkMarkPRCreated)
 
 	// Phase 5: Add PR comment
 	helper.CallTool("add_pull_request_comment", map[string]any{
@@ -40,7 +66,7 @@ func TestCompleteRepositoryLifecycle(t *testing.T) {
 		"pullNumber": prNumber,
 		"body":       "Looks good! Ready for review.",
 	})
-	helper.LogTestResult("✓ Pull request comment added")
+	helper.LogTestResult(checkMarkPRCommentAdded)
 
 	// Phase 6: Create PR review
 	helper.CallTool("create_pull_request_review", map[string]any{
@@ -50,7 +76,7 @@ func TestCompleteRepositoryLifecycle(t *testing.T) {
 		"event":      "APPROVE",
 		"body":       "Approved! Great work on this feature.",
 	})
-	helper.LogTestResult("✓ Pull request review created")
+	helper.LogTestResult(checkMarkPRReviewCreated)
 
 	// Phase 7: Merge pull request
 	mergeResponse := helper.CallTool("merge_pull_request", map[string]any{
@@ -65,7 +91,7 @@ func TestCompleteRepositoryLifecycle(t *testing.T) {
 	}
 	helper.AssertJSONResponse(mergeResponse, &mergeResult)
 	require.True(t, mergeResult.Merged, "expected PR to be merged successfully")
-	helper.LogTestResult("✓ Pull request merged")
+	helper.LogTestResult(checkMarkPRMerged)
 
 	// Phase 8: Verify file exists in main branch
 	getFileResponse := helper.CallTool("get_file_contents", map[string]any{
@@ -75,7 +101,7 @@ func TestCompleteRepositoryLifecycle(t *testing.T) {
 		"branch": "main",
 	})
 	require.Len(t, getFileResponse.Content, 2, "expected file to exist in main branch")
-	helper.LogTestResult("✓ File verified in main branch")
+	helper.LogTestResult(checkMarkFileVerified)
 
 	helper.LogTestResult("🎉 Complete repository lifecycle test passed!")
 }
@@ -91,11 +117,11 @@ func TestIssueManagementWorkflow(t *testing.T) {
 
 	// Phase 1: Create repository
 	repoName := helper.CreateTestRepo("issue-workflow-test")
-	helper.LogTestResult("✓ Repository created")
+	helper.LogTestResult(checkMarkRepoCreated)
 
 	// Phase 2: Create issue
 	issueNumber := helper.CreateTestIssue(repoName, "Bug: Application crashes on startup")
-	helper.LogTestResult("✓ Issue created")
+	helper.LogTestResult(checkMarkIssueCreated)
 
 	// Phase 3: Add labels to issue
 	helper.CallTool("add_issue_labels", map[string]any{
@@ -104,7 +130,7 @@ func TestIssueManagementWorkflow(t *testing.T) {
 		"issueNumber": issueNumber,
 		"labels":      []string{"bug", "high-priority", "crash"},
 	})
-	helper.LogTestResult("✓ Labels added to issue")
+	helper.LogTestResult(checkMarkLabelsAdded)
 
 	// Phase 4: Assign issue
 	helper.CallTool("add_issue_assignees", map[string]any{
@@ -113,7 +139,7 @@ func TestIssueManagementWorkflow(t *testing.T) {
 		"issueNumber": issueNumber,
 		"assignees":   []string{helper.GetOwner()},
 	})
-	helper.LogTestResult("✓ Issue assigned")
+	helper.LogTestResult(checkMarkIssueAssigned)
 
 	// Phase 5: Add issue comment
 	helper.CallTool("add_issue_comment", map[string]any{
@@ -122,19 +148,19 @@ func TestIssueManagementWorkflow(t *testing.T) {
 		"issueNumber": issueNumber,
 		"body":        "I've reproduced this issue. Working on a fix.",
 	})
-	helper.LogTestResult("✓ Issue comment added")
+	helper.LogTestResult(checkMarkCommentAdded)
 
 	// Phase 6: Create branch for fix
-	helper.CreateTestBranch(repoName, "fix-crash")
-	helper.LogTestResult("✓ Fix branch created")
+	helper.CreateTestBranch(repoName, fixBranchName)
+	helper.LogTestResult(checkMarkFixBranch)
 
 	// Phase 7: Create fix file
-	helper.CreateTestFile(repoName, "fix-crash", "fix.patch", "diff --git a/main.c b/main.c\nindex 1234567..abcdef0 100644\n--- a/main.c\n+++ b/main.c\n@@ -1,3 +1,3 @@\n int main() {\n-    crash();\n+    return 0;\n }", "Fix crash in main function")
-	helper.LogTestResult("✓ Fix committed")
+	helper.CreateTestFile(repoName, fixBranchName, "fix.patch", "diff --git a/main.c b/main.c\nindex 1234567..abcdef0 100644\n--- a/main.c\n+++ b/main.c\n@@ -1,3 +1,3 @@\n int main() {\n-    crash();\n+    return 0;\n }", "Fix crash in main function")
+	helper.LogTestResult(checkMarkFixCommitted)
 
 	// Phase 8: Create pull request referencing the issue
-	prNumber := helper.CreateTestPR(repoName, "Fix: Application crash on startup (fixes #"+string(rune(issueNumber+'0'))+")", "This PR fixes the application crash issue reported in #"+string(rune(issueNumber+'0')), "fix-crash", "main")
-	helper.LogTestResult("✓ Pull request created")
+	prNumber := helper.CreateTestPR(repoName, "Fix: Application crash on startup (fixes #"+string(rune(issueNumber+'0'))+")", "This PR fixes the application crash issue reported in #"+string(rune(issueNumber+'0')), fixBranchName, "main")
+	helper.LogTestResult(checkMarkPRCreated)
 
 	// Phase 9: Merge the fix
 	helper.CallTool("merge_pull_request", map[string]any{
@@ -143,7 +169,7 @@ func TestIssueManagementWorkflow(t *testing.T) {
 		"pullNumber":  prNumber,
 		"mergeMethod": "merge",
 	})
-	helper.LogTestResult("✓ Fix merged")
+	helper.LogTestResult(checkMarkPRMerged)
 
 	// Phase 10: Close the issue
 	helper.CallTool("update_issue", map[string]any{
@@ -152,7 +178,7 @@ func TestIssueManagementWorkflow(t *testing.T) {
 		"issueNumber": issueNumber,
 		"state":       "closed",
 	})
-	helper.LogTestResult("✓ Issue closed")
+	helper.LogTestResult(checkMarkIssueClosed)
 
 	helper.LogTestResult("🎉 Complete issue management workflow test passed!")
 }
@@ -168,7 +194,7 @@ func TestMultiBranchWorkflow(t *testing.T) {
 
 	// Phase 1: Create repository
 	repoName := helper.CreateTestRepo("multi-branch-test")
-	helper.LogTestResult("✓ Repository created")
+	helper.LogTestResult(checkMarkRepoCreated)
 
 	// Phase 2: Create multiple feature branches
 	branches := []string{"feature-ui", "feature-api", "feature-db"}
@@ -237,11 +263,11 @@ func TestCollaborativeWorkflow(t *testing.T) {
 
 	// Phase 1: Create repository
 	repoName := helper.CreateTestRepo("collaborative-test")
-	helper.LogTestResult("✓ Repository created")
+	helper.LogTestResult(checkMarkRepoCreated)
 
 	// Phase 2: Create issue
 	issueNumber := helper.CreateTestIssue(repoName, "New feature request")
-	helper.LogTestResult("✓ Issue created")
+	helper.LogTestResult(checkMarkIssueCreated)
 
 	// Phase 3: Add multiple comments to simulate discussion
 	comments := []string{
@@ -259,16 +285,16 @@ func TestCollaborativeWorkflow(t *testing.T) {
 			"body":        comment,
 		})
 	}
-	helper.LogTestResult("✓ Discussion comments added")
+	helper.LogTestResult(checkMarkDiscussionAdded)
 
 	// Phase 4: Create feature branch
-	helper.CreateTestBranch(repoName, "feature-request")
-	helper.CreateTestFile(repoName, "feature-request", "feature.md", "# New Feature\n\nThis implements the requested feature.", "Implement new feature")
-	helper.LogTestResult("✓ Feature implemented")
+	helper.CreateTestBranch(repoName, featureRequestBranch)
+	helper.CreateTestFile(repoName, featureRequestBranch, "feature.md", "# New Feature\n\nThis implements the requested feature.", "Implement new feature")
+	helper.LogTestResult(checkMarkFeatureBranch)
 
 	// Phase 5: Create pull request
-	prNumber := helper.CreateTestPR(repoName, "Implement new feature request", "Closes #"+string(rune(issueNumber+'0')), "feature-request", "main")
-	helper.LogTestResult("✓ Pull request created")
+	prNumber := helper.CreateTestPR(repoName, "Implement new feature request", "Closes #"+string(rune(issueNumber+'0')), featureRequestBranch, "main")
+	helper.LogTestResult(checkMarkPRCreated)
 
 	// Phase 6: Add PR review comments
 	helper.CallTool("create_pull_request_review", map[string]any{
@@ -294,7 +320,7 @@ func TestCollaborativeWorkflow(t *testing.T) {
 		"issueNumber": issueNumber,
 		"state":       "closed",
 	})
-	helper.LogTestResult("✓ Feature merged and issue closed")
+	helper.LogTestResult(checkMarkFeatureMerged)
 
 	helper.LogTestResult("🎉 Collaborative workflow test passed!")
 }
@@ -310,7 +336,7 @@ func TestErrorRecoveryWorkflow(t *testing.T) {
 
 	// Phase 1: Create repository
 	repoName := helper.CreateTestRepo("error-recovery-test")
-	helper.LogTestResult("✓ Repository created")
+	helper.LogTestResult(checkMarkRepoCreated)
 
 	// Phase 2: Test invalid operations (should fail gracefully)
 	helper.LogTestStep("Testing invalid operations")

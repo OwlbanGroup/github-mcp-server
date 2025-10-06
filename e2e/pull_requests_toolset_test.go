@@ -8,6 +8,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Constants for repeated literals
+const (
+	featureBranchName = "feature-branch"
+	mergeBranchName   = "merge-branch"
+
+	expectedTitleMatch = "expected title to match"
+)
+
 // TestPullRequestsToolsetCreatePullRequest tests PR creation
 func TestPullRequestsToolsetCreatePullRequest(t *testing.T) {
 	t.Parallel()
@@ -19,15 +27,15 @@ func TestPullRequestsToolsetCreatePullRequest(t *testing.T) {
 	helper.LogTestStep("Testing pull request creation")
 
 	repoName := helper.CreateTestRepo("pr-create-test")
-	helper.CreateTestBranch(repoName, "feature-branch")
-	helper.CreateTestFile(repoName, "feature-branch", "feature.txt", "New feature content", "Add feature file")
+	helper.CreateTestBranch(repoName, featureBranchName)
+	helper.CreateTestFile(repoName, featureBranchName, "feature.txt", "New feature content", "Add feature file")
 
 	response := helper.CallTool("create_pull_request", map[string]any{
 		"owner": helper.GetOwner(),
 		"repo":  repoName,
 		"title": "Test Pull Request",
 		"body":  "This is a test PR created by E2E tests.",
-		"head":  "feature-branch",
+		"head":  featureBranchName,
 		"base":  "main",
 	})
 
@@ -46,7 +54,7 @@ func TestPullRequestsToolsetCreatePullRequest(t *testing.T) {
 
 	helper.AssertJSONResponse(response, &pr)
 	require.Equal(t, 1, pr.Number, "expected PR number to be 1")
-	require.Equal(t, "Test Pull Request", pr.Title, "expected title to match")
+	require.Equal(t, "Test Pull Request", pr.Title, expectedTitleMatch)
 	require.Equal(t, "This is a test PR created by E2E tests.", pr.Body, "expected body to match")
 	require.Equal(t, "open", pr.State, "expected PR to be open")
 	require.Equal(t, "feature-branch", pr.Head.Ref, "expected head branch to match")
@@ -82,7 +90,7 @@ func TestPullRequestsToolsetGetPullRequest(t *testing.T) {
 
 	helper.AssertJSONResponse(response, &pr)
 	require.Equal(t, prNumber, pr.Number, "expected PR number to match")
-	require.Equal(t, "PR to Retrieve", pr.Title, "expected title to match")
+	require.Equal(t, "PR to Retrieve", pr.Title, expectedTitleMatch)
 	require.Equal(t, "open", pr.State, "expected PR to be open")
 
 	helper.LogTestResult("Pull request retrieved successfully")
@@ -125,11 +133,11 @@ func TestPullRequestsToolsetListPullRequests(t *testing.T) {
 	for _, pr := range prs {
 		if pr.Number == pr1 {
 			foundPR1 = true
-			require.Equal(t, "First PR", pr.Title, "expected title to match")
+			require.Equal(t, "First PR", pr.Title, expectedTitleMatch)
 		}
 		if pr.Number == pr2 {
 			foundPR2 = true
-			require.Equal(t, "Second PR", pr.Title, "expected title to match")
+			require.Equal(t, "Second PR", pr.Title, expectedTitleMatch)
 		}
 	}
 	require.True(t, foundPR1, "expected to find first PR")
@@ -277,10 +285,10 @@ func TestPullRequestsToolsetMergePullRequest(t *testing.T) {
 	repoName := helper.CreateTestRepo("pr-merge-test")
 
 	// Create a branch with changes
-	helper.CreateTestBranch(repoName, "merge-branch")
-	helper.CreateTestFile(repoName, "merge-branch", "merge.txt", "Content to merge", "Add file for merge")
+	helper.CreateTestBranch(repoName, mergeBranchName)
+	helper.CreateTestFile(repoName, mergeBranchName, "merge.txt", "Content to merge", "Add file for merge")
 
-	prNumber := helper.CreateTestPR(repoName, "PR to Merge", "Test PR for merging", "merge-branch", "main")
+	prNumber := helper.CreateTestPR(repoName, "PR to Merge", "Test PR for merging", mergeBranchName, "main")
 
 	response := helper.CallTool("merge_pull_request", map[string]any{
 		"owner":                helper.GetOwner(),
