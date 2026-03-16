@@ -97,8 +97,8 @@ func TestContextToolsetGetTeamMembers(t *testing.T) {
 	teamsResponse := helper.CallTool("get_teams", map[string]any{})
 
 	var teams []struct {
-		Name       string `json:"name"`
-		Slug       string `json:"slug"`
+		Name         string `json:"name"`
+		Slug         string `json:"slug"`
 		Organization struct {
 			Login string `json:"login"`
 		} `json:"organization"`
@@ -113,7 +113,7 @@ func TestContextToolsetGetTeamMembers(t *testing.T) {
 	// Test get_team_members with first available team
 	team := teams[0]
 	response := helper.CallTool("get_team_members", map[string]any{
-		"org":      team.Organization.Login,
+		"org":       team.Organization.Login,
 		"team_slug": team.Slug,
 	})
 
